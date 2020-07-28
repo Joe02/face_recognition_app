@@ -39,7 +39,7 @@ class CameraRecognitionState extends State<CameraRecognition> {
     );
   }
 
-  Future openCamera() async {
+  Future<File> openCamera() async {
     imageFile = await picker.getImage(source: ImageSource.camera);
     setState(() {
       _image = imageFile;
