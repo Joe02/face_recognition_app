@@ -20,13 +20,12 @@ class CameraRecognitionState extends State<CameraRecognition> {
   final textLabeler = FirebaseVision.instance.textRecognizer();
 
   @override
-  void initState() {
-    super.initState();
-    openCamera();
-  }
-
-  @override
   Widget build(BuildContext context) {
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      openCamera();
+    });
+
     return MaterialApp(
       home: Scaffold(
         body: containsFile

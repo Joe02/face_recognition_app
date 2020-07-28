@@ -22,11 +22,16 @@ class GalleryRecognitionState extends State<GalleryRecognition> {
   @override
   void initState() {
     super.initState();
-    openCamera();
+    openGallery();
   }
 
   @override
   Widget build(BuildContext context) {
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      openGallery();
+    });
+
     return MaterialApp(
       home: Scaffold(
         body: containsFile
@@ -36,7 +41,7 @@ class GalleryRecognitionState extends State<GalleryRecognition> {
     );
   }
 
-  Future<File> openCamera() async {
+  Future<File> openGallery() async {
     imageFile = await picker.getImage(source: ImageSource.camera);
     setState(() {
       _image = imageFile;
