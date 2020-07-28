@@ -17,6 +17,7 @@ class CameraRecognitionState extends State<CameraRecognition> {
   var containsFile = false;
 
   final labeler = FirebaseVision.instance.imageLabeler(ImageLabelerOptions(confidenceThreshold: 0.90));
+  final textLabeler = FirebaseVision.instance.textRecognizer();
 
   @override
   void initState() {
@@ -46,6 +47,9 @@ class CameraRecognitionState extends State<CameraRecognition> {
 
       // List<ImageLabel> labels = labeler.processImage(/*TODO Add Vision image here */);
       // print( labels[0].text )
+
+      // final textLabel = textLabeler.processImage(/*TODO Add Vision image here *);
+
       //TODO Do action considering labels[0].text as a parameter.
     });
   }
