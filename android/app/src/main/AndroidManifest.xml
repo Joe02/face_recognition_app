@@ -10,7 +10,6 @@
         android:name="io.flutter.app.FlutterApplication"
         android:label="image_recognition"
         android:icon="@mipmap/ic_launcher"
-        android:requestLegacyExternalStorage="true"
         tools:targetApi="q">
         <activity
             android:name=".MainActivity"

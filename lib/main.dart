@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_recognition/pages/camera_recognition_page.dart';
+import 'package:image_recognition/pages/gallery_recognition_page.dart';
 
 void main() {
   runApp(FaceRecognition());
@@ -8,7 +9,6 @@ void main() {
 class FaceRecognition extends StatefulWidget {
   @override
   FaceRecognitionState createState() => FaceRecognitionState();
-
 }
 
 class FaceRecognitionState extends State<FaceRecognition> {
@@ -41,7 +41,8 @@ class FaceRecognitionState extends State<FaceRecognition> {
                             Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
                                 children: <Widget>[
                                   RaisedButton(
                                     onPressed: () {
@@ -69,7 +70,15 @@ class FaceRecognitionState extends State<FaceRecognition> {
                                     ),
                                   ),
                                   RaisedButton(
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              GalleryRecognition(),
+                                        ),
+                                      );
+                                    },
                                     child: Row(
                                       children: <Widget>[
                                         Padding(
