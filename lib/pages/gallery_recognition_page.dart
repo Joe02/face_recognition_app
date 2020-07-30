@@ -53,7 +53,7 @@ class GalleryRecognitionState extends State<GalleryRecognition> {
 
   Future openGallery() async {
     //Gets image from ImagePicker.camera
-    final pickedFile = await picker.getImage(source: ImageSource.camera);
+    final pickedFile = await picker.getImage(source: ImageSource.gallery);
     final File file = File(pickedFile.path);
 
     //Sets the image to a File variable.
