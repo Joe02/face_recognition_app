@@ -67,6 +67,7 @@ class GalleryRecognitionState extends State<GalleryRecognition> {
     ImageLabeler recognizeImage = FirebaseVision.instance.imageLabeler(
         //90% of accuracy
         ImageLabelerOptions(confidenceThreshold: 0.90));
+
     final recognizedLabels =
         await recognizeImage.processImage(FirebaseVisionImage.fromFile(_image));
 

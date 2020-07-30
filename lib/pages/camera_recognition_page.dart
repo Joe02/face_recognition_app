@@ -71,6 +71,6 @@ class CameraRecognitionState extends State<CameraRecognition> {
 
     //Display the most related recognized word.
     _scaffoldKey.currentState
-        .showSnackBar(new SnackBar(content: Text("Morango")));
+        .showSnackBar(new SnackBar(content: Text(recognizedLabels[0].text)));
   }
 }

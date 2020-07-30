@@ -11,6 +11,9 @@
         android:label="image_recognition"
         android:icon="@mipmap/ic_launcher"
         tools:targetApi="q">
+        <meta-data
+            android:name="com.google.firebase.ml.vision.DEPENDENCIES"
+            android:value="label" />
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"
