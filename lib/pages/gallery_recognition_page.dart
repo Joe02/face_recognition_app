@@ -51,7 +51,7 @@ class GalleryRecognitionState extends State<GalleryRecognition> {
     );
   }
 
-  Future<File> openGallery() async {
+  Future openGallery() async {
     //Gets image from ImagePicker.camera
     final pickedFile = await picker.getImage(source: ImageSource.camera);
     final File file = File(pickedFile.path);
@@ -68,9 +68,10 @@ class GalleryRecognitionState extends State<GalleryRecognition> {
         //90% of accuracy
         ImageLabelerOptions(confidenceThreshold: 0.90));
 
-    final recognizedLabels =
+    final List<ImageLabel> recognizedLabels =
         await recognizeImage.processImage(FirebaseVisionImage.fromFile(_image));
 
+    print(recognizedLabels[0].text);
     //Displays the most related recognized word.
     _scaffoldKey.currentState
         .showSnackBar(new SnackBar(content: Text(recognizedLabels[0].text)));
