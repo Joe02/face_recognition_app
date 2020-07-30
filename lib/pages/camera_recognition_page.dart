@@ -30,25 +30,21 @@ class CameraRecognitionState extends State<CameraRecognition> {
 
   @override
   Widget build(BuildContext context) {
-
-    final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
-
     return MaterialApp(
       home: Scaffold(
-        key: _scaffoldKey,
         body: containsFile
             ? Center(
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
                     Container(
                         width: 300, height: 300, child: Image.file(_image)),
                     RaisedButton(
                       onPressed: () {
-                        recognizeElementsOnImage(_scaffoldKey);
+                        recognizeElementsOnImage();
                       },
                       child: Text("Identificar"),
                     ),
+                    Text(_firstLabel == "" ? "Texto aqui" : _firstLabel)
                   ],
                 ),
               )
@@ -58,18 +54,20 @@ class CameraRecognitionState extends State<CameraRecognition> {
   }
 
   Future<File> openCamera() async {
-    final pickedFile = await picker.getImage(source: ImageSource.gallery);
+    final pickedFile = await picker.getImage(source: ImageSource.camera);
     final File file = File(pickedFile.path);
     setState(() {
       _image = file;
+      containsFile = true;
     });
   }
 
-  Future recognizeElementsOnImage(_scaffoldKey) async {
+  Future recognizeElementsOnImage() async {
     FirebaseVisionImage imageForRecognition = FirebaseVisionImage.fromFile(_image);
     ImageLabeler recognizeImage = FirebaseVision.instance.imageLabeler();
     final recognizedLabels = await recognizeImage.processImage(imageForRecognition);
 
-    _scaffoldKey.currentState.showSnackBar(new SnackBar(content: Text(recognizedLabels[0].text)));
+//    _scaffoldKey.currentState.showSnackBar(new SnackBar(content: Text(recognizedLabels[0].text)));
   }
+
 }

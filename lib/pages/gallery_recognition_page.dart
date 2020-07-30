@@ -16,6 +16,7 @@ class GalleryRecognitionState extends State<GalleryRecognition> {
   File _image;
   var containsFile = false;
   List<ImageLabel> labels = [];
+  String _firstLabel = "";
 
   final labeler = FirebaseVision.instance
       .imageLabeler(ImageLabelerOptions(confidenceThreshold: 0.90));
@@ -33,20 +34,19 @@ class GalleryRecognitionState extends State<GalleryRecognition> {
 
     return MaterialApp(
       home: Scaffold(
-        key: _scaffoldKey,
         body: containsFile
             ? Center(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Container(
                   width: 300, height: 300, child: Image.file(_image)),
               RaisedButton(
                 onPressed: () {
-                  recognizeElementsOnImage(_scaffoldKey);
+                  recognizeElementsOnImage();
                 },
                 child: Text("Identificar"),
               ),
+              Text(_firstLabel == "" ? "Texto aqui" : _firstLabel)
             ],
           ),
         )
@@ -60,14 +60,15 @@ class GalleryRecognitionState extends State<GalleryRecognition> {
     final File file = File(pickedFile.path);
     setState(() {
       _image = file;
+      containsFile = true;
     });
   }
 
-  Future recognizeElementsOnImage(_scaffoldKey) async {
+  Future recognizeElementsOnImage() async {
     FirebaseVisionImage imageForRecognition = FirebaseVisionImage.fromFile(_image);
     ImageLabeler recognizeImage = FirebaseVision.instance.imageLabeler();
     final recognizedLabels = await recognizeImage.processImage(imageForRecognition);
 
-    _scaffoldKey.currentState.showSnackBar(new SnackBar(content: Text(recognizedLabels[0].text)));
+//    _scaffoldKey.currentState.showSnackBar(new SnackBar(content: Text(recognizedLabels[0].text)));
   }
 }
