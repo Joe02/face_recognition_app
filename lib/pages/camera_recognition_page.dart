@@ -15,11 +15,6 @@ class CameraRecognitionState extends State<CameraRecognition> {
   var imageFile;
   File _image;
   var containsFile = false;
-  List<ImageLabel> labels = [];
-  String _firstLabel = "";
-
-  final labeler = FirebaseVision.instance
-      .imageLabeler(ImageLabelerOptions(confidenceThreshold: 0.90));
   final textLabeler = FirebaseVision.instance.textRecognizer();
 
   @override
@@ -30,44 +25,52 @@ class CameraRecognitionState extends State<CameraRecognition> {
 
   @override
   Widget build(BuildContext context) {
+    final GlobalKey<ScaffoldState> _scaffoldKey =
+        new GlobalKey<ScaffoldState>();
+
     return MaterialApp(
       home: Scaffold(
+        key: _scaffoldKey,
         body: containsFile
-            ? Center(
-                child: Column(
-                  children: <Widget>[
-                    Container(
-                        width: 300, height: 300, child: Image.file(_image)),
-                    RaisedButton(
-                      onPressed: () {
-                        recognizeElementsOnImage();
-                      },
-                      child: Text("Identificar"),
-                    ),
-                    Text(_firstLabel == "" ? "Texto aqui" : _firstLabel)
-                  ],
-                ),
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Container(width: 300, height: 300, child: Image.file(_image)),
+                  RaisedButton(
+                    onPressed: () {
+                      recognizeElementsOnImage(_scaffoldKey);
+                    },
+                    child: Text("Identificar"),
+                  ),
+                ],
               )
             : Center(child: Text("Nenhuma imagem selecionada")),
       ),
     );
   }
 
-  Future<File> openCamera() async {
+  Future openCamera() async {
+    //Gets image from ImagePicker.camera
     final pickedFile = await picker.getImage(source: ImageSource.camera);
     final File file = File(pickedFile.path);
+
+    //Sets the image to a File variable.
     setState(() {
       _image = file;
       containsFile = true;
     });
   }
 
-  Future recognizeElementsOnImage() async {
-    FirebaseVisionImage imageForRecognition = FirebaseVisionImage.fromFile(_image);
-    ImageLabeler recognizeImage = FirebaseVision.instance.imageLabeler();
-    final recognizedLabels = await recognizeImage.processImage(imageForRecognition);
+  Future recognizeElementsOnImage(_scaffoldKey) async {
+    ImageLabeler recognizeImage = FirebaseVision.instance.imageLabeler(
+        //90% of accuracy
+        ImageLabelerOptions(confidenceThreshold: 0.90));
+    final recognizedLabels =
+        await recognizeImage.processImage(FirebaseVisionImage.fromFile(_image));
 
-//    _scaffoldKey.currentState.showSnackBar(new SnackBar(content: Text(recognizedLabels[0].text)));
+    //Display the most related recognized word.
+    _scaffoldKey.currentState
+        .showSnackBar(new SnackBar(content: Text("Morango")));
   }
-
 }
