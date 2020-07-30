@@ -65,17 +65,21 @@ class GalleryRecognitionState extends State<GalleryRecognition> {
 
   Future recognizeElementsOnImage(_scaffoldKey) async {
     ImageLabeler recognizeImage = FirebaseVision.instance.imageLabeler(
-        //90% of accuracy
-        ImageLabelerOptions(confidenceThreshold: 0.90));
+      ImageLabelerOptions(confidenceThreshold: 0.90)
+    );
 
-    final List<ImageLabel> recognizedLabels =
-        await recognizeImage.processImage(FirebaseVisionImage.fromFile(_image));
+    final List<ImageLabel> recognizedLabels = await recognizeImage
+        .processImage(FirebaseVisionImage.fromFilePath(_image.path));
 
-    recognizedLabels.isEmpty
-        ? _scaffoldKey.currentState
-            .showSnackBar(new SnackBar(content: Text("SEM LABELS")))
-        : //Display the most related recognized word.
+    if (recognizedLabels.isEmpty) {
+      _scaffoldKey.currentState
+          .showSnackBar(new SnackBar(content: Text("SEM LABELS")));
+    } else {
+      for (ImageLabel label in recognizedLabels) {
+        //Display the most related recognized word.
         _scaffoldKey.currentState.showSnackBar(
-            new SnackBar(content: Text(recognizedLabels[0].text)));
+            new SnackBar(content: Text(label.text)));
+      }
+    }
   }
 }
