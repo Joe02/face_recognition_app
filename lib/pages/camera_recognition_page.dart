@@ -70,9 +70,11 @@ class CameraRecognitionState extends State<CameraRecognition> {
     final List<ImageLabel> recognizedLabels =
         await recognizeImage.processImage(FirebaseVisionImage.fromFile(_image));
 
-    print(recognizedLabels[0].text);
-    //Display the most related recognized word.
-    _scaffoldKey.currentState
-        .showSnackBar(new SnackBar(content: Text(recognizedLabels[0].text)));
+    recognizedLabels.isEmpty
+        ? _scaffoldKey.currentState
+            .showSnackBar(new SnackBar(content: Text("SEM LABELS")))
+        : //Display the most related recognized word.
+        _scaffoldKey.currentState.showSnackBar(
+            new SnackBar(content: Text(recognizedLabels[0].text)));
   }
 }
