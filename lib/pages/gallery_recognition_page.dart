@@ -15,8 +15,10 @@ class GalleryRecognitionState extends State<GalleryRecognition> {
   var imageFile;
   File _image;
   var containsFile = false;
+  List<ImageLabel> labels = [];
 
-  final labeler = FirebaseVision.instance.imageLabeler(ImageLabelerOptions(confidenceThreshold: 0.90));
+  final labeler = FirebaseVision.instance
+      .imageLabeler(ImageLabelerOptions(confidenceThreshold: 0.90));
   final textLabeler = FirebaseVision.instance.textRecognizer();
 
   @override
@@ -27,32 +29,45 @@ class GalleryRecognitionState extends State<GalleryRecognition> {
 
   @override
   Widget build(BuildContext context) {
-    
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      openGallery();
-    });
+    final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
     return MaterialApp(
       home: Scaffold(
+        key: _scaffoldKey,
         body: containsFile
-            ? Container(width: 200, height: 200, child: Image.file(_image))
+            ? Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Container(
+                  width: 300, height: 300, child: Image.file(_image)),
+              RaisedButton(
+                onPressed: () {
+                  recognizeElementsOnImage(_scaffoldKey);
+                },
+                child: Text("Identificar"),
+              ),
+            ],
+          ),
+        )
             : Center(child: Text("Nenhuma imagem selecionada")),
       ),
     );
   }
 
   Future<File> openGallery() async {
-    imageFile = await picker.getImage(source: ImageSource.camera);
+    final pickedFile = await picker.getImage(source: ImageSource.gallery);
+    final File file = File(pickedFile.path);
     setState(() {
-      _image = imageFile;
-      containsFile = true;
-
-      // List<ImageLabel> labels = labeler.processImage(/*TODO Add Vision image here */);
-      // print( labels[0].text )
-
-      // final textLabel = textLabeler.processImage(/*TODO Add Vision image here *);
-
-      //TODO Do action considering labels[0].text as a parameter.
+      _image = file;
     });
+  }
+
+  Future recognizeElementsOnImage(_scaffoldKey) async {
+    FirebaseVisionImage imageForRecognition = FirebaseVisionImage.fromFile(_image);
+    ImageLabeler recognizeImage = FirebaseVision.instance.imageLabeler();
+    final recognizedLabels = await recognizeImage.processImage(imageForRecognition);
+
+    _scaffoldKey.currentState.showSnackBar(new SnackBar(content: Text(recognizedLabels[0].text)));
   }
 }
