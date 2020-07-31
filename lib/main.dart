@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:image_recognition/pages/camera_recognition_page.dart';
-import 'package:image_recognition/pages/gallery_recognition_page.dart';
+import 'package:image_recognition/pages/image_recognition.page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(FaceRecognition());
@@ -12,13 +12,30 @@ class FaceRecognition extends StatefulWidget {
 }
 
 class FaceRecognitionState extends State<FaceRecognition> {
+  Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
+  SharedPreferences prefs;
+  String appBarTitle = "Image recognition";
+  String selectableOption = "Choose from";
+  String cameraOption = "Camera";
+  String galleryOption = "Gallery";
+
+  @override
+  void initState() {
+    super.initState();
+    initPrefs();
+  }
+
+  initPrefs() async {
+    prefs = await _prefs;
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Builder(
         builder: (context) => Scaffold(
           appBar: AppBar(
-            title: Text("Reconhecimento de Imagem"),
+            title: Text(appBarTitle),
           ),
           body: Center(
             child: SingleChildScrollView(
@@ -34,7 +51,7 @@ class FaceRecognitionState extends State<FaceRecognition> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 30, vertical: 10),
                               child: Text(
-                                "Escolher uma foto apartir da",
+                                selectableOption,
                                 style: TextStyle(fontSize: 17),
                               ),
                             ),
@@ -50,7 +67,7 @@ class FaceRecognitionState extends State<FaceRecognition> {
                                         context,
                                         MaterialPageRoute(
                                           builder: (context) =>
-                                              CameraRecognition(),
+                                              ImageRecognition("Camera"),
                                         ),
                                       );
                                     },
@@ -58,7 +75,7 @@ class FaceRecognitionState extends State<FaceRecognition> {
                                       children: <Widget>[
                                         Padding(
                                           padding: const EdgeInsets.all(8.0),
-                                          child: Text("CÂMERA",
+                                          child: Text(cameraOption,
                                               style: TextStyle(
                                                   fontWeight: FontWeight.bold)),
                                         ),
@@ -75,7 +92,7 @@ class FaceRecognitionState extends State<FaceRecognition> {
                                         context,
                                         MaterialPageRoute(
                                           builder: (context) =>
-                                              GalleryRecognition(),
+                                              ImageRecognition("Gallery"),
                                         ),
                                       );
                                     },
@@ -84,7 +101,7 @@ class FaceRecognitionState extends State<FaceRecognition> {
                                         Padding(
                                           padding: const EdgeInsets.all(8.0),
                                           child: Text(
-                                            "GALERIA",
+                                            galleryOption,
                                             style: TextStyle(
                                                 fontWeight: FontWeight.bold),
                                           ),
@@ -110,4 +127,6 @@ class FaceRecognitionState extends State<FaceRecognition> {
       ),
     );
   }
+
+
 }

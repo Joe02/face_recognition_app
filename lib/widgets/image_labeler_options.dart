@@ -33,7 +33,7 @@ class ImageLabelerExhibitionState extends State<ImageLabelerExhibition> {
                       widget.recognizeElementsOnImage();
                     },
                     child: Text(
-                      "Identificar sem GCLOUD",
+                      "On Device",
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -47,7 +47,7 @@ class ImageLabelerExhibitionState extends State<ImageLabelerExhibition> {
                       widget.recognizeElementsOnImageGCLOUD();
                     },
                     child: Text(
-                      "Identificar com GCLOUD",
+                      "GCLOUD",
                       textAlign: TextAlign.center,
                     ),
                   ),

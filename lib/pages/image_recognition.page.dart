@@ -3,37 +3,51 @@ import 'dart:io';
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_recognition/widgets/image_labeler_options.dart';
 import 'package:image_recognition/widgets/image_recognition_response_list.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class GalleryRecognition extends StatefulWidget {
+class ImageRecognition extends StatefulWidget {
+  final String mode;
+
+  ImageRecognition(this.mode);
+
   @override
-  GalleryRecognitionState createState() => GalleryRecognitionState();
+  ImageRecognitionState createState() => ImageRecognitionState();
 }
 
-class GalleryRecognitionState extends State<GalleryRecognition> {
+class ImageRecognitionState extends State<ImageRecognition> {
   var picker = ImagePicker();
+  final textLabeler = FirebaseVision.instance.textRecognizer();
   var imageFile;
   File _image;
   var containsFile = false;
   List<String> labelOptions = [];
 
-  final textLabeler = FirebaseVision.instance.textRecognizer();
+  String _selectedLanguage = "English";
 
-  final GlobalKey<ScaffoldState> _scaffoldKey =
-  new GlobalKey<ScaffoldState>();
+  var noImageWarning = "No image selected";
+  var noLabelsWarning = "No labels found";
+
+  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+
+  Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
+  SharedPreferences prefs;
 
   @override
   void initState() {
     super.initState();
-    openGallery();
+    getImage();
+    initPrefs();
+  }
+
+  initPrefs() async {
+    prefs = await _prefs;
   }
 
   @override
   Widget build(BuildContext context) {
-
     return MaterialApp(
       home: Scaffold(
         key: _scaffoldKey,
@@ -50,7 +64,7 @@ class GalleryRecognitionState extends State<GalleryRecognition> {
                   buildResponseOptionsList()
                 ],
               )
-            : Center(child: Text("Nenhuma imagem selecionada")),
+            : Center(child: Text(noImageWarning)),
       ),
     );
   }
@@ -59,9 +73,12 @@ class GalleryRecognitionState extends State<GalleryRecognition> {
     return ImageRecognitionResponseList(labelOptions);
   }
 
-  Future openGallery() async {
+  Future getImage() async {
     //Gets image from ImagePicker.camera
-    final pickedFile = await picker.getImage(source: ImageSource.gallery);
+    final pickedFile = await picker.getImage(
+      source:
+          widget.mode == "Camera" ? ImageSource.camera : ImageSource.gallery,
+    );
     final File file = File(pickedFile.path);
 
     //Sets the image to a File variable.
@@ -80,7 +97,7 @@ class GalleryRecognitionState extends State<GalleryRecognition> {
 
     if (recognizedLabels.isEmpty) {
       _scaffoldKey.currentState
-          .showSnackBar(new SnackBar(content: Text("SEM LABELS")));
+          .showSnackBar(new SnackBar(content: Text(noLabelsWarning)));
     } else {
       labelOptions.clear();
     }
@@ -90,9 +107,6 @@ class GalleryRecognitionState extends State<GalleryRecognition> {
 //            .showSnackBar(new SnackBar(content: Text(label.text)));
       labelOptions.add(label.text);
     }
-    setState(() {
-      labelOptions = labelOptions;
-    });
   }
 
   Future recognizeElementsOnImageGCLOUD() async {
@@ -104,7 +118,7 @@ class GalleryRecognitionState extends State<GalleryRecognition> {
 
     if (recognizedLabels.isEmpty) {
       _scaffoldKey.currentState
-          .showSnackBar(new SnackBar(content: Text("SEM LABELS")));
+          .showSnackBar(new SnackBar(content: Text(noLabelsWarning)));
     } else {
       labelOptions.clear();
       for (ImageLabel label in recognizedLabels) {
@@ -117,5 +131,39 @@ class GalleryRecognitionState extends State<GalleryRecognition> {
     setState(() {
       labelOptions = labelOptions;
     });
+  }
+
+  void showLanguageTranslationModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (builder) {
+        return Column(
+          children: <Widget>[
+            Text("Choose a language for the labels :"),
+            Container(
+              child: Padding(
+                padding: const EdgeInsets.all(25.0),
+                child: DropdownButton(
+                  value: _selectedLanguage,
+                  items: <String>['English', 'Português']
+                      .map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                  onChanged: (String value) {
+                    setState(() {
+                      _selectedLanguage = value;
+                      prefs.setString("Language", value);
+                    });
+                  },
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 }
