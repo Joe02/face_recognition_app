@@ -4,6 +4,8 @@ import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:image_recognition/widgets/image_labeler_options.dart';
+import 'package:image_recognition/widgets/image_recognition_response_list.dart';
 
 class CameraRecognition extends StatefulWidget {
   @override
@@ -15,7 +17,13 @@ class CameraRecognitionState extends State<CameraRecognition> {
   var imageFile;
   File _image;
   var containsFile = false;
+  List<String> labelOptions = [];
+
   final textLabeler = FirebaseVision.instance.textRecognizer();
+
+  final GlobalKey<ScaffoldState> _scaffoldKey =
+  new GlobalKey<ScaffoldState>();
+
 
   @override
   void initState() {
@@ -25,29 +33,30 @@ class CameraRecognitionState extends State<CameraRecognition> {
 
   @override
   Widget build(BuildContext context) {
-    final GlobalKey<ScaffoldState> _scaffoldKey =
-        new GlobalKey<ScaffoldState>();
 
     return MaterialApp(
       home: Scaffold(
         key: _scaffoldKey,
         body: containsFile
             ? Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Container(width: 300, height: 300, child: Image.file(_image)),
-                  RaisedButton(
-                    onPressed: () {
-                      recognizeElementsOnImage(_scaffoldKey);
-                    },
-                    child: Text("Identificar"),
-                  ),
-                ],
-              )
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            ImageLabelerExhibition(
+              _image,
+              recognizeElementsOnImage,
+              recognizeElementsOnImageGCLOUD,
+            ),
+            buildResponseOptionsList()
+          ],
+        )
             : Center(child: Text("Nenhuma imagem selecionada")),
       ),
     );
+  }
+
+  buildResponseOptionsList() {
+    return ImageRecognitionResponseList(labelOptions);
   }
 
   Future openCamera() async {
@@ -62,19 +71,48 @@ class CameraRecognitionState extends State<CameraRecognition> {
     });
   }
 
-  Future recognizeElementsOnImage(_scaffoldKey) async {
-    ImageLabeler recognizeImage = FirebaseVision.instance.imageLabeler(
-        //90% of accuracy
-        ImageLabelerOptions(confidenceThreshold: 0.90));
+  Future recognizeElementsOnImage() async {
+    ImageLabeler recognizeImage = FirebaseVision.instance
+        .imageLabeler(ImageLabelerOptions(confidenceThreshold: 0.8));
 
-    final List<ImageLabel> recognizedLabels =
-        await recognizeImage.processImage(FirebaseVisionImage.fromFile(_image));
+    final List<ImageLabel> recognizedLabels = await recognizeImage
+        .processImage(FirebaseVisionImage.fromFilePath(_image.path));
 
-    recognizedLabels.isEmpty
-        ? _scaffoldKey.currentState
-            .showSnackBar(new SnackBar(content: Text("SEM LABELS")))
-        : //Display the most related recognized word.
-        _scaffoldKey.currentState.showSnackBar(
-            new SnackBar(content: Text(recognizedLabels[0].text)));
+    if (recognizedLabels.isEmpty) {
+      _scaffoldKey.currentState
+          .showSnackBar(new SnackBar(content: Text("SEM LABELS")));
+    } else {
+      labelOptions.clear();
+    }
+    for (ImageLabel label in recognizedLabels) {
+      //Display the most related recognized word.
+//        _scaffoldKey.currentState
+//            .showSnackBar(new SnackBar(content: Text(label.text)));
+      labelOptions.add(label.text);
+    }
+  }
+
+  Future recognizeElementsOnImageGCLOUD() async {
+    ImageLabeler recognizeImage = FirebaseVision.instance
+        .cloudImageLabeler(CloudImageLabelerOptions(confidenceThreshold: 0.7));
+
+    final List<ImageLabel> recognizedLabels = await recognizeImage
+        .processImage(FirebaseVisionImage.fromFilePath(_image.path));
+
+    if (recognizedLabels.isEmpty) {
+      _scaffoldKey.currentState
+          .showSnackBar(new SnackBar(content: Text("SEM LABELS")));
+    } else {
+      labelOptions.clear();
+      for (ImageLabel label in recognizedLabels) {
+        //Display the most related recognized word.
+//        _scaffoldKey.currentState
+//            .showSnackBar(new SnackBar(content: Text(label.text)));
+        labelOptions.add(label.text);
+      }
+    }
+    setState(() {
+      labelOptions = labelOptions;
+    });
   }
 }
