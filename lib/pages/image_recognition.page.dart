@@ -27,6 +27,7 @@ class ImageRecognitionState extends State<ImageRecognition> {
   File _image;
   var containsFile = false;
   List<String> labelOptions = [];
+  bool _loading = false;
 
   var noImageWarning = "No image selected";
   var noLabelsWarning = "No labels found";
@@ -58,7 +59,10 @@ class ImageRecognitionState extends State<ImageRecognition> {
               padding: const EdgeInsets.all(8.0),
               child: InkWell(
                 onTap: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => LanguageSelection()));
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => LanguageSelection()));
                 },
                 child: Icon(Icons.translate),
               ),
@@ -68,17 +72,25 @@ class ImageRecognitionState extends State<ImageRecognition> {
         key: _scaffoldKey,
         body: containsFile
             ? Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            ImageLabelerExhibition(
-              _image,
-              recognizeElementsOnImage,
-              recognizeElementsOnImageGCLOUD,
-            ),
-            buildResponseOptionsList()
-          ],
-        )
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  ImageLabelerExhibition(
+                    _image,
+                    recognizeElementsOnImage,
+                    recognizeElementsOnImageGCLOUD,
+                  ),
+                  _loading == true
+                      ? Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: <Widget>[
+                            CircularProgressIndicator(),
+                          ],
+                        )
+                      : buildResponseOptionsList()
+                ],
+              )
             : Center(child: Text(noImageWarning)),
       ),
     );
@@ -92,7 +104,7 @@ class ImageRecognitionState extends State<ImageRecognition> {
     //Gets image from ImagePicker.camera
     final pickedFile = await picker.getImage(
       source:
-      widget.mode == "Camera" ? ImageSource.camera : ImageSource.gallery,
+          widget.mode == "Camera" ? ImageSource.camera : ImageSource.gallery,
     );
     final File file = File(pickedFile.path);
 
@@ -104,6 +116,9 @@ class ImageRecognitionState extends State<ImageRecognition> {
   }
 
   Future recognizeElementsOnImage() async {
+    setState(() {
+      _loading = true;
+    });
     ImageLabeler recognizeImage = FirebaseVision.instance
         .imageLabeler(ImageLabelerOptions(confidenceThreshold: 0.7));
 
@@ -133,10 +148,14 @@ class ImageRecognitionState extends State<ImageRecognition> {
     }
     setState(() {
       labelOptions = labelOptions;
+      _loading = false;
     });
   }
 
   Future recognizeElementsOnImageGCLOUD() async {
+    setState(() {
+      _loading = true;
+    });
     ImageLabeler recognizeImage = FirebaseVision.instance
         .cloudImageLabeler(CloudImageLabelerOptions(confidenceThreshold: 0.7));
 
@@ -163,7 +182,7 @@ class ImageRecognitionState extends State<ImageRecognition> {
     }
     setState(() {
       labelOptions = labelOptions;
+      _loading = false;
     });
   }
-
 }
