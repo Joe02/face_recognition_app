@@ -3,10 +3,13 @@ import 'dart:io';
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:image_recognition/pages/language_selection.dart';
 import 'package:image_recognition/widgets/image_labeler_options.dart';
 import 'package:image_recognition/widgets/image_recognition_response_list.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:translator/translator.dart';
 
 class ImageRecognition extends StatefulWidget {
   final String mode;
@@ -24,8 +27,6 @@ class ImageRecognitionState extends State<ImageRecognition> {
   File _image;
   var containsFile = false;
   List<String> labelOptions = [];
-
-  String _selectedLanguage = "English";
 
   var noImageWarning = "No image selected";
   var noLabelsWarning = "No labels found";
@@ -50,20 +51,34 @@ class ImageRecognitionState extends State<ImageRecognition> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
+        appBar: AppBar(
+          title: Text("Change language"),
+          actions: <Widget>[
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: InkWell(
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => LanguageSelection()));
+                },
+                child: Icon(Icons.translate),
+              ),
+            )
+          ],
+        ),
         key: _scaffoldKey,
         body: containsFile
             ? Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  ImageLabelerExhibition(
-                    _image,
-                    recognizeElementsOnImage,
-                    recognizeElementsOnImageGCLOUD,
-                  ),
-                  buildResponseOptionsList()
-                ],
-              )
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            ImageLabelerExhibition(
+              _image,
+              recognizeElementsOnImage,
+              recognizeElementsOnImageGCLOUD,
+            ),
+            buildResponseOptionsList()
+          ],
+        )
             : Center(child: Text(noImageWarning)),
       ),
     );
@@ -77,7 +92,7 @@ class ImageRecognitionState extends State<ImageRecognition> {
     //Gets image from ImagePicker.camera
     final pickedFile = await picker.getImage(
       source:
-          widget.mode == "Camera" ? ImageSource.camera : ImageSource.gallery,
+      widget.mode == "Camera" ? ImageSource.camera : ImageSource.gallery,
     );
     final File file = File(pickedFile.path);
 
@@ -90,7 +105,7 @@ class ImageRecognitionState extends State<ImageRecognition> {
 
   Future recognizeElementsOnImage() async {
     ImageLabeler recognizeImage = FirebaseVision.instance
-        .imageLabeler(ImageLabelerOptions(confidenceThreshold: 0.8));
+        .imageLabeler(ImageLabelerOptions(confidenceThreshold: 0.7));
 
     final List<ImageLabel> recognizedLabels = await recognizeImage
         .processImage(FirebaseVisionImage.fromFilePath(_image.path));
@@ -105,8 +120,20 @@ class ImageRecognitionState extends State<ImageRecognition> {
       //Display the most related recognized word.
 //        _scaffoldKey.currentState
 //            .showSnackBar(new SnackBar(content: Text(label.text)));
-      labelOptions.add(label.text);
+      final translator = GoogleTranslator();
+      if (prefs.getString("Language") == "English") {
+        await translator
+            .translate(label.text, from: 'en', to: 'en')
+            .then((value) => labelOptions.add(value.text));
+      } else {
+        await translator
+            .translate(label.text, from: 'en', to: 'pt')
+            .then((value) => labelOptions.add(value.text));
+      }
     }
+    setState(() {
+      labelOptions = labelOptions;
+    });
   }
 
   Future recognizeElementsOnImageGCLOUD() async {
@@ -122,10 +149,16 @@ class ImageRecognitionState extends State<ImageRecognition> {
     } else {
       labelOptions.clear();
       for (ImageLabel label in recognizedLabels) {
-        //Display the most related recognized word.
-//        _scaffoldKey.currentState
-//            .showSnackBar(new SnackBar(content: Text(label.text)));
-        labelOptions.add(label.text);
+        final translator = GoogleTranslator();
+        if (prefs.getString("Language") == "English") {
+          var translation = await translator
+              .translate(label.text, from: 'en', to: 'en')
+              .then((value) => labelOptions.add(value.text));
+        } else {
+          var translation = await translator
+              .translate(label.text, from: 'en', to: 'pt')
+              .then((value) => labelOptions.add(value.text));
+        }
       }
     }
     setState(() {
@@ -133,37 +166,4 @@ class ImageRecognitionState extends State<ImageRecognition> {
     });
   }
 
-  void showLanguageTranslationModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      builder: (builder) {
-        return Column(
-          children: <Widget>[
-            Text("Choose a language for the labels :"),
-            Container(
-              child: Padding(
-                padding: const EdgeInsets.all(25.0),
-                child: DropdownButton(
-                  value: _selectedLanguage,
-                  items: <String>['English', 'Português']
-                      .map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                  onChanged: (String value) {
-                    setState(() {
-                      _selectedLanguage = value;
-                      prefs.setString("Language", value);
-                    });
-                  },
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
 }

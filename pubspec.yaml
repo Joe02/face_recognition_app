@@ -31,6 +31,7 @@ dependencies:
   image_picker: ^0.6.7+4
   firebase_ml_vision: ^0.9.5
   shared_preferences: ^0.5.8
+  translator: ^0.1.5
 
 dev_dependencies:
   flutter_test:
